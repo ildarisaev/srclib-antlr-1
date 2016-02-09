@@ -2,17 +2,23 @@ language: java
 jdk:
   - oraclejdk8
 
-install:
-  # Install Srclib
-  - sudo wget -NO /tmp/src.zip 'https://api.equinox.io/1/Applications/ap_BQxVz1iWMxmjQnbVGd85V58qz6/Updates/Asset/src-0.0.22.zip?os=linux&arch=amd64&channel=stable'
-  - sudo unzip /tmp/src*.zip -d /usr/local/bin
-  - sudo mv /usr/local/bin/src-* /usr/local/bin/src
-  - sudo chmod +x /usr/local/bin/src
+before_install:
+  - mkdir -p $HOME/gopath/src/sourcegraph.com/sourcegraph
+  - mv $TRAVIS_BUILD_DIR $HOME/gopath/src/sourcegraph.com/sourcegraph/srclib-basic
+  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/sourcegraph.com/sourcegraph/srclib-basic
+  - mkdir -p $HOME/bin
+  - export PATH=$PATH:$HOME/bin
+  - mkdir -p $HOME/.srclib/sourcegraph.com/sourcegraph/
 
-  # Build this toolchain
-  - make
-  - src toolchain add sourcegraph.com/sourcegraph/srclib-basic
+install:
+# installing srclib
+  - mkdir $HOME/gopath
+  - export GOPATH=$HOME/gopath
+  - go get -u -v sourcegraph.com/sourcegraph/srclib/cmd/srclib
+  - export PATH=$PATH:$HOME/gopath/bin
+# installing toolchain
+  - ln -s $TRAVIS_BUILD_DIR $HOME/.srclib/sourcegraph.com/sourcegraph/srclib-basic
+  - make install
 
 script:
-  - make install
-  - src test -m program
+  - srclib test 
